@@ -47,13 +47,7 @@ function TextFieldControl(props) {
                                 onChange={changeInput}
                                 value={value}
                                 disabled={props.item.disabled}
-                            >
-                                {props.item.select && props.item.currencies.map((option) => (
-                                    <MenuItem key={option.index} value={option.index}>
-                                        {option.label}
-                                    </MenuItem>
-                                ))}
-                            </TextField>
+                            ></TextField>
                         )
                         : (<Autocomplete item={props.item} key={props.item.index} saveCar={saveCar} getNewCurrencies={props.getNewCurrencies} />)
                 )

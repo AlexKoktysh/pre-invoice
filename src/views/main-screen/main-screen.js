@@ -199,12 +199,12 @@ function MainScreen() {
 
     useMemo(() => {
         if (commodityDictionary[4].value && commodityDictionary[6]?.value) {
-            const sum = commodityDictionary[4].value + commodityDictionary[6].value;
+            const sum = Number(commodityDictionary[4].value) + Number(commodityDictionary[6].value);
             const resObj = commodityDictionary?.map((element) => {
                 if (element.fieldName === "product_cost_with_vat") {
                     return {
                         ...element,
-                        value: sum,
+                        value: sum.toFixed(2),
                     };
                 }
                 return element;
@@ -214,12 +214,12 @@ function MainScreen() {
     }, [commodityDictionary[4]?.value, commodityDictionary[6]?.value]);
     useMemo(() => {
         if (commodityDictionary[4].value && commodityDictionary[5]?.value) {
-            const sum = commodityDictionary[4].value * (commodityDictionary[5].value / 100);
+            const sum = Number(commodityDictionary[4].value) * (Number(commodityDictionary[5].value) / 100);
             const resObj = commodityDictionary?.map((element) => {
                 if (element.fieldName === "invoice_product_vat_sum") {
                     return {
                         ...element,
-                        value: sum,
+                        value: sum.toFixed(2),
                     };
                 }
                 return element;
@@ -229,12 +229,12 @@ function MainScreen() {
     }, [commodityDictionary[4].value, commodityDictionary[5]?.value]);
     useMemo(() => {
         if (commodityDictionary[2].value && commodityDictionary[3].value) {
-            const sum = commodityDictionary[2].value * commodityDictionary[3].value;
+            const sum = Number(commodityDictionary[2].value) * Number(commodityDictionary[3].value);
             const resObj = commodityDictionary?.map((element) => {
                 if (element.fieldName === "product_cost") {
                     return {
                         ...element,
-                        value: sum,
+                        value: sum.toFixed(2),
                     };
                 }
                 return element;
