@@ -1,0 +1,18 @@
+#card {
+    display: flex;
+    flex-direction: column;
+    margin-top: 30px;
+    #component-outlined {
+        border-radius: 8px;
+    }
+    .form {
+        display: flex;
+        flex-direction: column;
+        height: 750px;
+        width: 450px;
+        .header {
+            font-weight: bold;
+            margin: 5px 0px;
+        }
+    }
+}

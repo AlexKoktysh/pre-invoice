@@ -1,0 +1,12 @@
+.container {
+    #group-label {
+        font-weight: bold;
+        font-family: "Public Sans", sans-serif;
+        color: #212B36;
+    }
+    #group {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+    }
+}

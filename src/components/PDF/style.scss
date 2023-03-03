@@ -1,0 +1,62 @@
+.recognizer-permissions {
+  overflow: hidden;
+}
+
+.rpv-core__viewer {
+  width: 50%;
+  height: 750px !important;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.rpv-core__tools {
+  display: grid;
+  grid-template-columns: 2fr 0fr 0fr;
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 4px;
+}
+
+.rpv-toolbar__left .rpv-core__display--hidden {
+  display: none;
+}
+
+.rpv-toolbar__left .rpv-toolbar__item div[aria-haspopup="dialog"] {
+  display: none;
+}
+
+.rpv-toolbar__right .rpv-core__display--hidden:first-child {
+  display: none;
+}
+
+.rpv-toolbar__right .rpv-core__display--hidden:nth-child(3) {
+  display: none;
+}
+
+.rpv-toolbar__right .rpv-toolbar__item div[aria-haspopup="menu"] {
+  display: none;
+}
+
+.recognizer-permissions
+  .rpv-toolbar__right
+  .rpv-core__display--hidden:nth-child(4) {
+  display: none;
+}
+
+.recognizer-permissions
+  .rpv-toolbar__right
+  .rpv-core__display--hidden:nth-child(5) {
+  display: none;
+}
+
+.rpv-toolbar__center {
+  margin-left: 25px;
+}
+
+#rpv-core__tooltip-body-zoom-out,
+#rpv-core__tooltip-body-zoom-in,
+#rpv-core__tooltip-body-full-screen-enter,
+#rpv-core__tooltip-body-rotate,
+#rpv-core__tooltip-body-get-file,
+#rpv-core__tooltip-body-print {
+  padding: 4px;
+}
