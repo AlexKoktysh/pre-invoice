@@ -1,0 +1,11 @@
+{
+  "files": {
+    "main.css": "/pre-invoice/static/css/main.4b7259e4.css",
+    "main.js": "/pre-invoice/static/js/main.8e670613.js",
+    "index.html": "/pre-invoice/index.html"
+  },
+  "entrypoints": [
+    "static/css/main.4b7259e4.css",
+    "static/js/main.8e670613.js"
+  ]
+}
