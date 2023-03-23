@@ -2,11 +2,10 @@ export const dogovorDictionary_default = [
     { index: "0", value: "", label: "Номер счета", require: true, fieldName: "docNumber" },
     { index: "1", value: "", label: "Дата начала счета", date: true, require: true, fieldName: "check_start_date" },
     { index: "3", value: "", label: "УНП/ИНН контрагента", require: true, fieldName: "organisation_unp" },
-    { index: "4", value: "", label: "Короткое наименование организации", require: true, fieldName: "short_organisation_name" },
-    { index: "5", value: "", label: "Фамилия уполномоченного лица", require: true, fieldName: "contragent_owner_last_name" },
-    { index: "6", value: "", label: "Имя уполномоченного лица", require: true, fieldName: "contragent_owner_name" },
-    { index: "7", value: "", label: "Отчество уполномоченного лица", require: true, fieldName: "contragent_owner_second_name" },
-    { index: "8", value: "", label: "Должность уполномоченного лица", require: true, fieldName: "contragent_owner_job" },
+    { index: "4", value: "", label: "Фамилия уполномоченного лица", require: true, fieldName: "contragent_owner_last_name" },
+    { index: "5", value: "", label: "Имя уполномоченного лица", require: true, fieldName: "contragent_owner_name" },
+    { index: "6", value: "", label: "Отчество уполномоченного лица", require: true, fieldName: "contragent_owner_second_name" },
+    { index: "7", value: "", label: "Должность уполномоченного лица", require: true, fieldName: "contragent_owner_job" },
 ];
 
 export const commodityDictionary_default = [

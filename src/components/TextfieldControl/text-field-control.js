@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FormControl, TextField, MenuItem } from "@mui/material";
+import { FormControl, TextField } from "@mui/material";
 import DatePickerControl from "../../components/DatePicker/date-picker.js";
 import "./text-field-control.scss";
 import Autocomplete from "../Autocomplete/autocomplete.js";

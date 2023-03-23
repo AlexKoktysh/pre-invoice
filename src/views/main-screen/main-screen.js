@@ -2,12 +2,12 @@ import { useEffect, useState, useMemo } from "react";
 import ActCard from "../act-card/act-card.js";
 import {
     getDataForCreateTtn,
-    sendTemplate,
     sendCommodityDictionary,
     showSection,
     deleteSection,
     getCommodityDictionary,
     updateCommodityDictionary,
+    addSample,
 } from "../../api/api";
 import {
     dogovorDictionary_default,
@@ -24,7 +24,7 @@ import {
     changeDogovorDictionary_result_custom,
 } from "../../use/change_result_custom.js";
 
-function MainScreen() {
+function MainScreen(props) {
     const [serverResult, setServerResult] = useState([]);
     const [response, setResponse] = useState([]);
     const [step, setStep] = useState("");
@@ -46,6 +46,8 @@ function MainScreen() {
     const [valueDelivery, setValueDelivery] = useState("");
     const [currency, setCurrency] = useState(null);
     const [invoiceOrientationKinds_id, setInvoiceOrientationKinds_id] = useState();
+    const [sample_id, setSample_id] = useState(props.sample_id);
+    const [currencyCode, setCurrencyCode] = useState([]);
     useEffect(() => {
         const item = templateView.find((el) => el.checked)?.value;
         const value = Number(item);
@@ -98,16 +100,20 @@ function MainScreen() {
             const response = await showSection(productPosition_active);
             const resArray = [...productPosition];
             if (response?.data?.sectionCount >= 1 && response.data.sectionCount + 1 > productPosition.length) {
-                for (let i = 1; i < response.data.sectionCount + 1; i++) {
-                    resArray.push({ index: i, value: i + 1, label: i + 1 })
+                for (let i = 1; i < response.data.sectionCount; i++) {
+                    const find = resArray.find((el) => el.index === i);
+                    !find && resArray.push({ index: i, value: i + 1, label: i + 1 })
                 }
                 setProductPosition(resArray);
             }
             if (response?.status === 200) {
                 const newCommodityDictionary = commodityDictionary?.map((element) => {
                     const value = response.data.columns[element.fieldName];
-                    if (element.fieldName === "product_name") {
-                        return {...element, value: value ? value : "", invoice_max_qty: response.data.columns.invoice_max_qty || ""};
+                    if (element.fieldName === "invoice_product_name") {
+                        return {...element, value: value ? value : "", ttn_max_qty: response.data.columns.ttn_max_qty || ""};
+                    }
+                    if (element.fieldName === "invoice_product_qty") {
+                        return {...element, value: value ? value : "", ttn_max_qty: response.data.columns.ttn_max_qty || ""};
                     }
                     return {...element, value: value ? value : ""};
                 });
@@ -277,6 +283,8 @@ function MainScreen() {
         const typesDelivery_server = response.deliveryConditions?.map((el, index) => {
             return { index: index, label: el.label, value: index + 1 };
         });
+        const currencyCode_server = response?.currencyDictionary?.map((el) => el) || [];
+        setCurrencyCode(currencyCode_server);
         const dogovorDictionary_server = setResponseMapper(dogovorDictionary, response);
         setDogovorDictionary(dogovorDictionary_server);
         setTypesDelivery(typesDelivery_server);
@@ -308,10 +316,14 @@ function MainScreen() {
     useEffect(() => {
         const isAll_dogovorDictionary = dogovorDictionary.filter((el) => el.value === "" && el.require);
         const isShowDelivery = typesDelivery_server === "1" || typesDelivery_server === "2" ? !!valueDelivery : typesDelivery_server === "3";
+        const isAll_commodityDictionary_result = commodityDictionary.filter((el) => el.value === "" && el.require);
+        const isCurrencyCode = currencyCode.find((el) => el.checked);
         if (
             !isAll_dogovorDictionary.length &&
             isShowDelivery &&
-            invoiceOrientationKinds_id
+            invoiceOrientationKinds_id &&
+            !isAll_commodityDictionary_result.length &&
+            isCurrencyCode
             ) {
                 const dogovorDictionary_result = dogovorDictionary
                     .filter((el) => !el.header)
@@ -320,14 +332,19 @@ function MainScreen() {
                 const delivery_conditions_id = {fieldName: "deliv_cond_id", value: typesDelivery_server};
 
                 const delivery_conditions_value = {fieldName: "deliv_cond_value", value: valueDelivery};
+                const sample_id_obj = {fieldName: "sample_id", value: sample_id};
 
                 const orientationKinds_id = {fieldName: "invoiceOrientationKinds_id", value: invoiceOrientationKinds_id};
+                const currencyCode_result = {fieldName: "invoiceCurrencyCode_id", value: Number(currencyCode.find((el) => el.checked)?.value)};
                 
                 const res = [
                     ...dogovorDictionary_result,
                     orientationKinds_id,
                     delivery_conditions_id,
                     delivery_conditions_value,
+                    sample_id_obj,
+                    ...commodityDictionary_result,
+                    currencyCode_result,
                 ];
                 setServerResult(res);
                 setIsShowSample(true);
@@ -340,6 +357,9 @@ function MainScreen() {
         typesDelivery_server,
         valueDelivery,
         invoiceOrientationKinds_id,
+        sample_id,
+        currencyCode,
+        commodityDictionary_result,
     ]);
     const changeTemplateView = (val) => {
         const changeItem = templateView?.map((el) => {
@@ -352,7 +372,7 @@ function MainScreen() {
         setTemplateView(changeItem);
     };
     const clickSample = async () => {
-        await sendTemplate(serverResult);
+        await props.sendTemplate(serverResult);
     };
     const changeDate = (label, value) => {
         switch (label) {
@@ -375,11 +395,11 @@ function MainScreen() {
     };
     const deleteCommodityDictionary = async () => {
         const res = await deleteSection(productPosition_active);
-        if (res) {
+        if (res.status && res.message !== "Удаление позиции для счета не требуется") {
             setProductPosition_active(productPosition_active);
             const response = await showSection(productPosition_active);
             const resArray = [];
-            for (let i = 0; i < response.data.sectionCount + 1; i++) {
+            for (let i = 0; i < response.data.sectionCount; i++) {
                 resArray.push({ index: i, value: i + 1, label: i + 1 })
             }
             if (response?.status === 200) {
@@ -390,6 +410,23 @@ function MainScreen() {
                 setCommodityDictionary(newCommodityDictionary);
             }
             setProductPosition(resArray);
+        } else {
+            if (res.message === "Удаление позиции для счета не требуется") {
+                setProductPosition_active(productPosition_active - 1);
+                const response = await showSection(productPosition_active - 1);
+                const resArray = [];
+                for (let i = 0; i < response.data.sectionCount; i++) {
+                    resArray.push({ index: i, value: i + 1, label: i + 1 })
+                }
+                if (response?.status === 200) {
+                    const newCommodityDictionary = commodityDictionary?.map((element) => {
+                        const value = response.data.columns[element.fieldName];
+                        return {...element, value: value ? value : ""};
+                    });
+                    setCommodityDictionary(newCommodityDictionary);
+                }
+                setProductPosition(resArray);
+            }
         }
     };
     const changeProductPosition_active = (value) => {
@@ -398,6 +435,27 @@ function MainScreen() {
     };
     const changeValueDelivery = (event) => {
         setValueDelivery(event.target.value);
+    };
+    useEffect(() => {
+        setSample_id(props.sample_id);
+    }, [props.sample_id]);
+    const clickAdd = async () => {
+        const response = await addSample(serverResult);
+        if (response["ajax-response"] === "ТН/ТТН успешно сохранен") {
+            window.location.reload();
+        } else {
+            alert("Проверьте правильность заполненных полей");
+        }
+    };
+    const changeCurrencyCode = (val) => {
+        const changeItem = currencyCode?.map((el) => {
+            if (el.value === Number(val)) {
+                return {...el, checked: true};
+            } else {
+                return {...el, checked: false};
+            }
+        });
+        setCurrencyCode(changeItem);
     };
 
     return (
@@ -427,6 +485,10 @@ function MainScreen() {
                 resSteps={resSteps}
                 changeValueDelivery={changeValueDelivery}
                 valueDelivery={valueDelivery}
+                showAddButton={props.showAddButton}
+                clickAdd={clickAdd}
+                changeCurrencyCode={changeCurrencyCode}
+                currencyCode={currencyCode}
             />
         </div>
     );

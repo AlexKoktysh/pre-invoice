@@ -11,12 +11,20 @@ function ActCard(props) {
     const [delivery, setDelivery] = useState(props.delivery);
     const [localPosition, setLocalPosition] = useState(props.productPosition_active);
     const [labelDeliv, setLabelDeliv] = useState(props.labelDeliv);
+    const [currencyCode, setCurrencyCode] = useState(props.currencyCode.find((el) => el.checked)?.value || "");
 
     const [templateView, setTemplateView] = useState(props.templateView.find((el) => el.checked)?.value || "");
     const changeTemplateView = (val) => {
         setTemplateView(val);
         props.changeTemplateView(val);
     };
+    const changeCurrencyCode = (val) => {
+        setCurrencyCode(val);
+        val !== currencyCode && props.changeCurrencyCode(val);
+    };
+    useEffect(() => {
+        setCurrencyCode(props.currencyCode.find((el) => el.checked)?.value || "");
+    }, [props.currencyCode]);
     useEffect(() => {
         setLocalPosition(props.productPosition_active);
     }, [props.productPosition_active]);
@@ -60,13 +68,14 @@ function ActCard(props) {
             <div className="form">
                 {step === "2" && <Form label="Позиция" value={localPosition} items={props.productPosition} change={changePosition} />}
                 {listItems}
+                {step === "1" && <Form label="Вид валюты" value={currencyCode} items={props.currencyCode} change={changeCurrencyCode} />}
                 {step === "1" && props.typesDelivery && <Box sx={{ mb: 2 }}><Form label="Выберите вид поставки" value={delivery} items={props.typesDelivery} change={changeDelivery} /></Box>}
                 {step === "1" && labelDeliv && <Box sx={{ mb: 2 }}><TextField size="small" label={labelDeliv} onChange={props.changeValueDelivery} value={props.valueDelivery} /></Box>}
                 {step === "2"
                     &&
                     <Box sx={{ mb: 4, mt: 4, display: 'flex', justifyContent: 'space-between' }}>
                         <Button onClick={props.addCommodityDictionary} disabled={!props.isShowAddCommodityDictionary} color="secondary" variant="contained">Добавить</Button>
-                        <Button onClick={props.deleteCommodityDictionary} disabled={!props.isShowAddCommodityDictionary} color="secondary" variant="contained">Удалить</Button>
+                        <Button onClick={props.deleteCommodityDictionary} color="secondary" variant="contained">Удалить</Button>
                     </Box>
                 }
                 <Form label="Заполняемая секция" value={step} items={props.resSteps} change={changeStep} />
@@ -74,7 +83,7 @@ function ActCard(props) {
                     <Button onClick={props.clickSample} disabled={!props.isShowSample} color="secondary" variant="contained">Заполнить шаблон</Button>
                 </Box>
                 <Box sx={{ mb: 4 }}>
-                    <Button disabled color="secondary" variant="contained">Создать</Button>
+                    <Button disabled={!props.showAddButton} onClick={props.clickAdd} color="secondary" variant="contained">Создать</Button>
                 </Box>
             </div>
         </div>

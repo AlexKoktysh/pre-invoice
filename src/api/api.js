@@ -28,7 +28,7 @@ const checkError = (error) => {
 };
 
 export const getDataForCreateTtn = async () => {
-    const response = await instance.post("get_data_for_create");
+    const response = await instance.post("get_data_for_create", { "invoice_type": "pre_invoice" });
     return response.data;
 };
 
@@ -55,7 +55,7 @@ export const showSection = async (section) => {
 
 export const deleteSection = async (section) => {
     const response = await instance.post("remove_position", { "position": section, "invoice_type": "pre_invoice" });
-    return response.status === 200;
+    return { status: response.status === 200, "message": response.data["ajax-response"] };
 };
 
 export const updateCommodityDictionary = async (params) => {
@@ -66,4 +66,9 @@ export const updateCommodityDictionary = async (params) => {
 export const getCommodityDictionary = async (searchText) => {
     const response = await instance_commodity.post("get_commodity_dictionary",  { filter: searchText });
     return response.data;
+};
+export const addSample = async (params) => {
+    const json = {...params};
+    // const response = await instance.post("create", json);
+    // return response.data;
 };
