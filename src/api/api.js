@@ -5,14 +5,18 @@ const instance = axios.create({
     baseURL: `https://portal.liloo.by/api/services/invoice/`,
     headers: {
         Authorization : `Bearer ${token}`,
-        "Access-Control-Allow-Origin": "https://portal.liloo.by/api/",
     },
 });
 const instance_commodity = axios.create({
     baseURL: `https://portal.liloo.by/api/services/ttn/`,
     headers: {
         Authorization : `Bearer ${token}`,
-        "Access-Control-Allow-Origin": "https://portal.liloo.by/api/",
+    },
+});
+const pre_instance = axios.create({
+    baseURL: `https://portal.liloo.by/api/services/pre_invoice/`,
+    headers: {
+        Authorization : `Bearer ${token}`,
     },
 });
 instance.interceptors.response.use(
@@ -23,8 +27,16 @@ instance_commodity.interceptors.response.use(
     (response) => response,
     (error) => checkError(error)
 );
+pre_instance.interceptors.response.use(
+    (response) => response,
+    (error) => checkError(error)
+);
 const checkError = (error) => {
-    alert(error.message);
+    if (error.response.data["ajax-errors"] !== "Произошли ошибки при валидации данных формы.") {
+        return alert(error.response.data["ajax-errors"]);
+    }
+    alert(error.response.data["ajax-errors"]);
+    return error.response.data["fail_fields"];
 };
 
 export const getDataForCreateTtn = async () => {
@@ -32,14 +44,13 @@ export const getDataForCreateTtn = async () => {
     return response.data;
 };
 
-export const fillTemplate = async (value) => {
-    const response = await instance.post("fill_template", value);
-    return response.data;
-};
-
 export const sendTemplate = async (params) => {
     const json = {...params};
-    console.log("json", json);
+    const response = await pre_instance.post("fill_template", json);
+    if (response.data) {
+        return response.data;
+    }
+    return {type: "error", field: response};
 };
 
 export const sendCommodityDictionary = async (params) => {
@@ -69,6 +80,6 @@ export const getCommodityDictionary = async (searchText) => {
 };
 export const addSample = async (params) => {
     const json = {...params};
-    // const response = await instance.post("create", json);
-    // return response.data;
+    const response = await pre_instance.post("create", json);
+    return response.data;
 };

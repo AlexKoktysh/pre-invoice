@@ -1,5 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import ActCard from "../act-card/act-card.js";
+import { CircularProgress } from "@mui/material";
+import Box from '@mui/material/Box';
 import {
     getDataForCreateTtn,
     sendCommodityDictionary,
@@ -46,8 +48,10 @@ function MainScreen(props) {
     const [valueDelivery, setValueDelivery] = useState("");
     const [currency, setCurrency] = useState(null);
     const [invoiceOrientationKinds_id, setInvoiceOrientationKinds_id] = useState();
+    const [organisationTypes_id, setOrganisationTypes_id] = useState([]);
     const [sample_id, setSample_id] = useState(props.sample_id);
     const [currencyCode, setCurrencyCode] = useState([]);
+    const [server_response, setServer_response] = useState(false);
     useEffect(() => {
         const item = templateView.find((el) => el.checked)?.value;
         const value = Number(item);
@@ -55,8 +59,10 @@ function MainScreen(props) {
     }, [templateView]);
     useEffect(() => {
         const fetch = async () => {
+            setServer_response(true);
             const response = await getDataForCreateTtn();
             setResponse(response);
+            setServer_response(false);
         };
         fetch();
     }, []);
@@ -100,7 +106,7 @@ function MainScreen(props) {
             const response = await showSection(productPosition_active);
             const resArray = [...productPosition];
             if (response?.data?.sectionCount >= 1 && response.data.sectionCount + 1 > productPosition.length) {
-                for (let i = 1; i < response.data.sectionCount; i++) {
+                for (let i = 1; i < response.data.sectionCount - 1; i++) {
                     const find = resArray.find((el) => el.index === i);
                     !find && resArray.push({ index: i, value: i + 1, label: i + 1 })
                 }
@@ -160,7 +166,14 @@ function MainScreen(props) {
         }));
     };
     const getNewCurrencies = async (value) => {
+        const x = commodityDictionary.map((el) => {
+            if (el.fieldName === "product_name") {
+                return {...el, value};
+            }
+            return el;
+        });
         fetchCommodity(value);
+        setCommodityDictionary(x);
     };
     const addProduct = async (item, value) => {
         const server_product = Object.values(item.controlValue);
@@ -175,6 +188,16 @@ function MainScreen(props) {
             });
             setCommodityDictionary(res);
         }
+        const ind = item.currencies.length;
+        const pushItem = {index: ind, label: value};
+        const res = commodityDictionary?.map((el) => {
+            if (el.fieldName === item.fieldName && pushItem.label !== "") {
+                return {...el, value, currencies: [...el.currencies, pushItem]};
+            } else {
+                return el;
+            }
+        });
+        setCommodityDictionary(res);
     };
     const changeCommodityDictionary = (fieldName, parenValue) => {
         if (!Object.values(server_commodityDictionary).length) {
@@ -284,6 +307,8 @@ function MainScreen(props) {
             return { index: index, label: el.label, value: index + 1 };
         });
         const currencyCode_server = response?.currencyDictionary?.map((el) => el) || [];
+        const organisationTypes_id_server = response?.organisationTypes || [];
+        setOrganisationTypes_id(organisationTypes_id_server);
         setCurrencyCode(currencyCode_server);
         const dogovorDictionary_server = setResponseMapper(dogovorDictionary, response);
         setDogovorDictionary(dogovorDictionary_server);
@@ -318,12 +343,14 @@ function MainScreen(props) {
         const isShowDelivery = typesDelivery_server === "1" || typesDelivery_server === "2" ? !!valueDelivery : typesDelivery_server === "3";
         const isAll_commodityDictionary_result = commodityDictionary.filter((el) => el.value === "" && el.require);
         const isCurrencyCode = currencyCode.find((el) => el.checked);
+        const isOrganisationTypes_id = organisationTypes_id?.find((el) => el.checked)?.value;
         if (
             !isAll_dogovorDictionary.length &&
             isShowDelivery &&
             invoiceOrientationKinds_id &&
             !isAll_commodityDictionary_result.length &&
-            isCurrencyCode
+            isCurrencyCode &&
+            isOrganisationTypes_id !== undefined
             ) {
                 const dogovorDictionary_result = dogovorDictionary
                     .filter((el) => !el.header)
@@ -336,6 +363,7 @@ function MainScreen(props) {
 
                 const orientationKinds_id = {fieldName: "invoiceOrientationKinds_id", value: invoiceOrientationKinds_id};
                 const currencyCode_result = {fieldName: "invoiceCurrencyCode_id", value: Number(currencyCode.find((el) => el.checked)?.value)};
+                const isOrganisationTypes_id_server = {fieldName: "organisation_types", value: isOrganisationTypes_id};
                 
                 const res = [
                     ...dogovorDictionary_result,
@@ -345,6 +373,7 @@ function MainScreen(props) {
                     sample_id_obj,
                     ...commodityDictionary_result,
                     currencyCode_result,
+                    isOrganisationTypes_id_server,
                 ];
                 setServerResult(res);
                 setIsShowSample(true);
@@ -360,6 +389,7 @@ function MainScreen(props) {
         sample_id,
         currencyCode,
         commodityDictionary_result,
+        organisationTypes_id,
     ]);
     const changeTemplateView = (val) => {
         const changeItem = templateView?.map((el) => {
@@ -370,6 +400,16 @@ function MainScreen(props) {
             }
         });
         setTemplateView(changeItem);
+    };
+    const changeOrganisationTypes_id = (val) => {
+        const changeItem = organisationTypes_id?.map((el) => {
+            if (el.value === Number(val)) {
+                return {...el, checked: true};
+            } else {
+                return {...el, checked: false};
+            }
+        });
+        setOrganisationTypes_id(changeItem);
     };
     const clickSample = async () => {
         await props.sendTemplate(serverResult);
@@ -388,8 +428,15 @@ function MainScreen(props) {
             const newProductPosition = [
                 ...productPosition,
                 { index: productPosition_active, value: productPosition_active + 1, label: productPosition_active + 1 },
-            ]
-            setProductPosition(newProductPosition);
+            ];
+            const { arr: filtered } = newProductPosition.reduce((acc, elem) => {
+                if (!acc.unique[elem.value]) {
+                   acc.unique[elem.value] = true;
+                   acc.arr.push(elem);
+                }
+                return acc;
+            }, { arr: [], unique: {} });
+            setProductPosition(filtered);
             setProductPosition_active(productPosition_active + 1);
         }
     };
@@ -441,7 +488,7 @@ function MainScreen(props) {
     }, [props.sample_id]);
     const clickAdd = async () => {
         const response = await addSample(serverResult);
-        if (response["ajax-response"] === "ТН/ТТН успешно сохранен") {
+        if (response["ajax-response"] === "Счет успешно сохранен") {
             window.location.reload();
         } else {
             alert("Проверьте правильность заполненных полей");
@@ -457,39 +504,102 @@ function MainScreen(props) {
         });
         setCurrencyCode(changeItem);
     };
+    useEffect(() => {
+        const checkItem = organisationTypes_id?.find((el) => el.checked)?.value;
+        if (checkItem === 0) {
+            const field = dogovorDictionary.map((el) => {
+                if (el.fieldName === "organisation_unp") {
+                    return {...el, disabled: true, value: "физич. лицо"};
+                }
+                if (
+                    el.fieldName === "contragent_owner_last_name" ||
+                    el.fieldName === "contragent_owner_name" ||
+                    el.fieldName === "contragent_owner_second_name" ||
+                    el.fieldName === "contragent_owner_job"
+                    ) {
+                    return {...el, disabled: false, value: el.value === "-" ? "" : el.value};
+                }
+                return el;
+            });
+            setDogovorDictionary(field);
+        }
+        if (checkItem === 1) {
+            const field = dogovorDictionary.map((el) => {
+                if (
+                    el.fieldName === "contragent_owner_last_name" ||
+                    el.fieldName === "contragent_owner_name" ||
+                    el.fieldName === "contragent_owner_second_name" ||
+                    el.fieldName === "contragent_owner_job"
+                    ) {
+                    return {...el, disabled: true, value: "-"};
+                }
+                if (el.fieldName === "organisation_unp") {
+                    return {...el, disabled: false, value: el.value === "физич. лицо" ? "" : el.value};
+                }
+                return el;
+            });
+            setDogovorDictionary(field);
+        }
+        if (checkItem === 2) {
+            const field = dogovorDictionary.map((el) => {
+                if (
+                    el.fieldName === "contragent_owner_last_name" ||
+                    el.fieldName === "contragent_owner_name" ||
+                    el.fieldName === "contragent_owner_second_name" ||
+                    el.fieldName === "contragent_owner_job"
+                    ) {
+                    return {...el, disabled: false, value: el.value === "-" ? "" : el.value};
+                }
+                if (el.fieldName === "organisation_unp") {
+                    return {...el, disabled: false, value: el.value === "физич. лицо" ? "" : el.value};
+                }
+                return el;
+            });
+            setDogovorDictionary(field);
+        }
+    }, [organisationTypes_id]);
 
     return (
         <div id="main-screen">
-            <ActCard
-                delivery={typesDelivery_server}
-                changeDelivery={(deliv) => setDelivery_server(deliv)}
-                changeStep={(step) => setStep(step)}
-                items={activeFormItems}
-                updatedItems={updatedItems}
-                typesDelivery={typesDelivery}
-                addProduct={addProduct}
-                templateView={templateView}
-                changeTemplateView={changeTemplateView}
-                isShowSample={isShowSample}
-                clickSample={clickSample}
-                changeDate={changeDate}
-                isShowAddCommodityDictionary={isShowAddCommodityDictionary}
-                addCommodityDictionary={addCommodityDictionary}
-                productPosition={productPosition}
-                productPosition_active={productPosition_active}
-                changeProductPosition_active={changeProductPosition_active}
-                deleteCommodityDictionary={deleteCommodityDictionary}
-                getNewCurrencies={getNewCurrencies}
-                commodityDictionary={commodityDictionary}
-                labelDeliv={labelDeliv}
-                resSteps={resSteps}
-                changeValueDelivery={changeValueDelivery}
-                valueDelivery={valueDelivery}
-                showAddButton={props.showAddButton}
-                clickAdd={clickAdd}
-                changeCurrencyCode={changeCurrencyCode}
-                currencyCode={currencyCode}
-            />
+            {server_response &&
+                <Box sx={{ justifyContent: 'center', width: '50%' }}>
+                    <CircularProgress />
+                </Box>
+            }
+            {!server_response && 
+                <ActCard
+                    delivery={typesDelivery_server}
+                    changeDelivery={(deliv) => setDelivery_server(deliv)}
+                    changeStep={(step) => setStep(step)}
+                    items={activeFormItems}
+                    updatedItems={updatedItems}
+                    typesDelivery={typesDelivery}
+                    addProduct={addProduct}
+                    templateView={templateView}
+                    changeTemplateView={changeTemplateView}
+                    isShowSample={isShowSample}
+                    clickSample={clickSample}
+                    changeDate={changeDate}
+                    isShowAddCommodityDictionary={isShowAddCommodityDictionary}
+                    addCommodityDictionary={addCommodityDictionary}
+                    productPosition={productPosition}
+                    productPosition_active={productPosition_active}
+                    changeProductPosition_active={changeProductPosition_active}
+                    deleteCommodityDictionary={deleteCommodityDictionary}
+                    getNewCurrencies={getNewCurrencies}
+                    commodityDictionary={commodityDictionary}
+                    labelDeliv={labelDeliv}
+                    resSteps={resSteps}
+                    changeValueDelivery={changeValueDelivery}
+                    valueDelivery={valueDelivery}
+                    showAddButton={props.showAddButton}
+                    clickAdd={clickAdd}
+                    changeCurrencyCode={changeCurrencyCode}
+                    currencyCode={currencyCode}
+                    organisationTypes_id={organisationTypes_id}
+                    changeOrganisationTypes_id={changeOrganisationTypes_id}
+                />
+            }
         </div>
     );
 }

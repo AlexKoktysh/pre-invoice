@@ -11,7 +11,7 @@ function TextFieldControl(props) {
         let val = event.target.value;
         if (props.item.fieldName === "product_qty") {
             const max_qty = props.commodityDictionary[0]?.currencies?.find((el) => el.label === props.commodityDictionary[0].value)?.invoice_max_qty;
-            val = Number(event.target.value) <= Number(max_qty) ? event.target.value : max_qty;
+            val = Number(event.target.value) <= Number(max_qty) ? event.target.value : max_qty || event.target.value;
         }
         setValue(val);
         props.change(props.item, val);
@@ -44,6 +44,7 @@ function TextFieldControl(props) {
                                 select={props.item.select}
                                 key={props.item.index}
                                 size="small"
+                                className={`${props.item.class || ""}`}
                                 onChange={changeInput}
                                 value={value}
                                 disabled={props.item.disabled}

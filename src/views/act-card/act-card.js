@@ -14,9 +14,14 @@ function ActCard(props) {
     const [currencyCode, setCurrencyCode] = useState(props.currencyCode.find((el) => el.checked)?.value || "");
 
     const [templateView, setTemplateView] = useState(props.templateView.find((el) => el.checked)?.value || "");
+    const [organisationTypes_id, setOrganisationTypes_id] = useState(props.organisationTypes_id.find((el) => el.checked)?.value || "");
     const changeTemplateView = (val) => {
         setTemplateView(val);
         props.changeTemplateView(val);
+    };
+    const changeOrganisationTypes_id = (val) => {
+        setOrganisationTypes_id(val);
+        props.changeOrganisationTypes_id(val);
     };
     const changeCurrencyCode = (val) => {
         setCurrencyCode(val);
@@ -65,6 +70,7 @@ function ActCard(props) {
     return (
         <div id="card">
             {step === "1" && <Form label="Вид шаблона" value={templateView} items={props.templateView} change={changeTemplateView} />}
+            {step === "1" && <Form label="Тип организации" value={organisationTypes_id} items={props.organisationTypes_id} change={changeOrganisationTypes_id} />}
             <div className="form">
                 {step === "2" && <Form label="Позиция" value={localPosition} items={props.productPosition} change={changePosition} />}
                 {listItems}

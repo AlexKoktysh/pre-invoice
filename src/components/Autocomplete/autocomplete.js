@@ -1,12 +1,18 @@
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import { useEffect, useState } from 'react';
+import parse from 'autosuggest-highlight/parse';
+import match from 'autosuggest-highlight/match';
 
 function AutocompleteField(props) {
     const [label, setLabel] = useState("");
     const save = (event) => {
-        const val = event.currentTarget.innerText;
-        props.saveCar(val)
+        props.saveCar(event.currentTarget.innerText)
+    };
+    const setNewItem = (event) => {
+        if (event.target.value !== "") {
+            return props.saveCar(event.target.value);
+        }
     };
     const newCar = (event) => {
         if (props.item.label === "Наименование товара" && event.target.value.length >= 3) {
@@ -36,11 +42,34 @@ function AutocompleteField(props) {
             id="free-solo-demo"
             size="small"
             freeSolo
+            loading={props.loader}
             value={label}
+            loadingText={"Загрузка"}
             onChange={save}
             options={props.item.currencies?.map((option) => option)}
             renderInput={(params) => {
-                return <TextField {...params} label={props.item.label} onChange={newCar} />
+                return <TextField {...params} label={props.item.label} onChange={newCar} onBlur={setNewItem} />
+            }}
+            renderOption={(props, option, { inputValue }) => {
+                const matches = match(option.label, inputValue, { insideWords: true });
+                const parts = parse(option.label, matches);
+
+                return (
+                  <li {...props}>
+                    <div>
+                      {parts.map((part) => (
+                        <span
+                          key={part.text}
+                          style={{
+                            fontWeight: part.highlight ? 700 : 400,
+                          }}
+                        >
+                          {part.text}
+                        </span>
+                      ))}
+                    </div>
+                  </li>
+                );
             }}
         />
     );

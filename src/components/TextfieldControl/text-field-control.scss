@@ -8,3 +8,8 @@
 .MuiFormControl-root {
     width: 100% !important;
 }
+.capitalize {
+    input {
+        text-transform: capitalize !important;
+    }
+}
