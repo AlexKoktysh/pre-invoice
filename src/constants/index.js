@@ -30,10 +30,6 @@ export const commodityDictionary_default = [
     { index: "6", value: "", label: "Сумма НДС,", fieldName: "invoice_product_vat_sum", require: true },
     { index: "7", value: "", label: "Стоимость с НДС,", fieldName: "product_cost_with_vat", require: true },
 ];
-export const templateViewField = [
-    { index: "0", value: "1", label: "Вертикально", checked: false },
-    { index: "1", value: "2", label: "Горизонтально", checked: false },
-];
 
 export const steps = [
     { index: "0", value: "1", label: "1" },

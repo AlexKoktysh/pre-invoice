@@ -5,4 +5,18 @@
   align-items: center;
   justify-content: center;
   text-align: center;
+  .button {
+    border: 1px solid red !important;
+    position: fixed;
+    top: 0;
+    right: 0;
+  }
+  .right {
+    position: absolute;
+    left: 0;
+  }
+  .left {
+    position: absolute;
+    right: 0;
+  }
 }

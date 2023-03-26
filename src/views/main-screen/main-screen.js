@@ -14,7 +14,6 @@ import {
 import {
     dogovorDictionary_default,
     commodityDictionary_default,
-    templateViewField,
     steps,
 } from "../../constants/index.js";
 import "./main-screen.scss";
@@ -35,7 +34,7 @@ function MainScreen(props) {
     const [activeFormItems, setActiveFormItems] = useState([]);
     const [dogovorDictionary, setDogovorDictionary] = useState(dogovorDictionary_default);
     const [commodityDictionary, setCommodityDictionary] = useState(commodityDictionary_default);
-    const [templateView, setTemplateView] = useState(templateViewField);
+    const [templateView, setTemplateView] = useState([]);
     const [isShowSample, setIsShowSample] = useState(false);
     const [isShowAddCommodityDictionary, setIsShowAddCommodityDictionary] = useState(false);
     const [commodityDictionary_result, setCommodityDictionary_result] = useState([]);
@@ -52,6 +51,7 @@ function MainScreen(props) {
     const [sample_id, setSample_id] = useState(props.sample_id);
     const [currencyCode, setCurrencyCode] = useState([]);
     const [server_response, setServer_response] = useState(false);
+
     useEffect(() => {
         const item = templateView.find((el) => el.checked)?.value;
         const value = Number(item);
@@ -115,10 +115,7 @@ function MainScreen(props) {
             if (response?.status === 200) {
                 const newCommodityDictionary = commodityDictionary?.map((element) => {
                     const value = response.data.columns[element.fieldName];
-                    if (element.fieldName === "invoice_product_name") {
-                        return {...element, value: value ? value : "", ttn_max_qty: response.data.columns.ttn_max_qty || ""};
-                    }
-                    if (element.fieldName === "invoice_product_qty") {
+                    if (element.fieldName === "invoice_product_name" || element.fieldName === "invoice_product_qty") {
                         return {...element, value: value ? value : "", ttn_max_qty: response.data.columns.ttn_max_qty || ""};
                     }
                     return {...element, value: value ? value : ""};
@@ -166,14 +163,14 @@ function MainScreen(props) {
         }));
     };
     const getNewCurrencies = async (value) => {
-        const x = commodityDictionary.map((el) => {
+        const items = commodityDictionary.map((el) => {
             if (el.fieldName === "product_name") {
                 return {...el, value};
             }
             return el;
         });
         fetchCommodity(value);
-        setCommodityDictionary(x);
+        setCommodityDictionary(items);
     };
     const addProduct = async (item, value) => {
         const server_product = Object.values(item.controlValue);
@@ -306,9 +303,11 @@ function MainScreen(props) {
         const typesDelivery_server = response.deliveryConditions?.map((el, index) => {
             return { index: index, label: el.label, value: index + 1 };
         });
+        const templateView_server = response?.invoiceOrientationKinds?.map((el) => el) || [];
         const currencyCode_server = response?.currencyDictionary?.map((el) => el) || [];
         const organisationTypes_id_server = response?.organisationTypes || [];
         setOrganisationTypes_id(organisationTypes_id_server);
+        setTemplateView(templateView_server);
         setCurrencyCode(currencyCode_server);
         const dogovorDictionary_server = setResponseMapper(dogovorDictionary, response);
         setDogovorDictionary(dogovorDictionary_server);
@@ -391,25 +390,30 @@ function MainScreen(props) {
         commodityDictionary_result,
         organisationTypes_id,
     ]);
-    const changeTemplateView = (val) => {
-        const changeItem = templateView?.map((el) => {
-            if (el.value === val) {
-                return {...el, checked: true};
-            } else {
-                return {...el, checked: false};
-            }
-        });
-        setTemplateView(changeItem);
+    const getItemsForCheckbox = (type) => {
+        switch (type) {
+            case "currency":
+                return {items: currencyCode, func: setCurrencyCode};
+            case "template_view":
+                return {items: templateView, func: setTemplateView}
+            case "organisation_types":
+                return {items: organisationTypes_id, func: setOrganisationTypes_id};
+            default:
+                return null;
+        }
     };
-    const changeOrganisationTypes_id = (val) => {
-        const changeItem = organisationTypes_id?.map((el) => {
-            if (el.value === Number(val)) {
-                return {...el, checked: true};
-            } else {
-                return {...el, checked: false};
-            }
-        });
-        setOrganisationTypes_id(changeItem);
+    const changeCheckbox = (val, type) => {
+        const {items, func} = getItemsForCheckbox(type);
+        if (items) {
+            const changeItem = items?.map((el) => {
+                if (el.value === Number(val)) {
+                    return {...el, checked: true};
+                } else {
+                    return {...el, checked: false};
+                }
+            });
+            func(changeItem);
+        }
     };
     const clickSample = async () => {
         await props.sendTemplate(serverResult);
@@ -494,16 +498,6 @@ function MainScreen(props) {
             alert("Проверьте правильность заполненных полей");
         }
     };
-    const changeCurrencyCode = (val) => {
-        const changeItem = currencyCode?.map((el) => {
-            if (el.value === Number(val)) {
-                return {...el, checked: true};
-            } else {
-                return {...el, checked: false};
-            }
-        });
-        setCurrencyCode(changeItem);
-    };
     useEffect(() => {
         const checkItem = organisationTypes_id?.find((el) => el.checked)?.value;
         if (checkItem === 0) {
@@ -576,7 +570,6 @@ function MainScreen(props) {
                     typesDelivery={typesDelivery}
                     addProduct={addProduct}
                     templateView={templateView}
-                    changeTemplateView={changeTemplateView}
                     isShowSample={isShowSample}
                     clickSample={clickSample}
                     changeDate={changeDate}
@@ -594,10 +587,9 @@ function MainScreen(props) {
                     valueDelivery={valueDelivery}
                     showAddButton={props.showAddButton}
                     clickAdd={clickAdd}
-                    changeCurrencyCode={changeCurrencyCode}
                     currencyCode={currencyCode}
                     organisationTypes_id={organisationTypes_id}
-                    changeOrganisationTypes_id={changeOrganisationTypes_id}
+                    changeCheckbox={changeCheckbox}
                 />
             }
         </div>

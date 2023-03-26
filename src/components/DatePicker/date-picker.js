@@ -7,8 +7,8 @@ import moment from "moment/moment.js";
 
 function DatePickerControl(props) {
     const setPropsDate = (value) => {
-        const propsDate = props.item.value.includes(".");
-        return propsDate ? moment(props.item.value, 'DD.MM.YYYY') : moment(props.item.value, 'YYYY-MM-DD')
+        const propsDate = value.includes(".");
+        return propsDate ? moment(value, 'DD.MM.YYYY') : moment(value, 'YYYY-MM-DD')
     };
     const defaultDate = props.item.value ? setPropsDate(props.item.value).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
     const [date, setDate] = useState(defaultDate);

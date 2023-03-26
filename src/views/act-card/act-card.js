@@ -11,22 +11,24 @@ function ActCard(props) {
     const [delivery, setDelivery] = useState(props.delivery);
     const [localPosition, setLocalPosition] = useState(props.productPosition_active);
     const [labelDeliv, setLabelDeliv] = useState(props.labelDeliv);
+    
     const [currencyCode, setCurrencyCode] = useState(props.currencyCode.find((el) => el.checked)?.value || "");
-
     const [templateView, setTemplateView] = useState(props.templateView.find((el) => el.checked)?.value || "");
     const [organisationTypes_id, setOrganisationTypes_id] = useState(props.organisationTypes_id.find((el) => el.checked)?.value || "");
+    
     const changeTemplateView = (val) => {
         setTemplateView(val);
-        props.changeTemplateView(val);
+        props.changeCheckbox(val, "template_view")
     };
     const changeOrganisationTypes_id = (val) => {
         setOrganisationTypes_id(val);
-        props.changeOrganisationTypes_id(val);
+        props.changeCheckbox(val, "organisation_types");
     };
     const changeCurrencyCode = (val) => {
         setCurrencyCode(val);
-        val !== currencyCode && props.changeCurrencyCode(val);
+        val !== currencyCode && props.changeCheckbox(val, "currency");
     };
+    
     useEffect(() => {
         setCurrencyCode(props.currencyCode.find((el) => el.checked)?.value || "");
     }, [props.currencyCode]);
